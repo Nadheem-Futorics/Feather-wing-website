@@ -13,8 +13,10 @@ import { createProposal, logToolCall, saveMessage, listMessages } from "../repo/
 
 /**
  * AI travel assistant.
- * - Provider abstraction: assistantProvider() returns Anthropic when
- *   ANTHROPIC_API_KEY is set, otherwise a labeled development assistant.
+ * - Provider abstraction: assistantProvider() returns Gemini when
+ *   GEMINI_API_KEY is set (checked first — free tier available), else
+ *   Anthropic when ANTHROPIC_API_KEY is set, else a labeled development
+ *   assistant.
  * - All mutations flow through ai_change_proposals; nothing is applied
  *   without explicit user approval (commit happens in the proposal API,
  *   not inside a model-callable tool).
@@ -222,6 +224,24 @@ async function execTool(name: ToolName, rawInput: unknown, ctx: AssistantRun): P
   }
 }
 
+/** Anthropic-style JSON schema (lowercase types) → Gemini's Schema proto (uppercase type enum). */
+function toGeminiSchema(schema: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  if (typeof schema.type === "string") out.type = schema.type.toUpperCase();
+  if (schema.description) out.description = schema.description;
+  if (Array.isArray(schema.enum)) out.enum = schema.enum;
+  if (Array.isArray(schema.required)) out.required = schema.required;
+  if (schema.properties && typeof schema.properties === "object") {
+    out.properties = Object.fromEntries(
+      Object.entries(schema.properties as Record<string, unknown>).map(([k, v]) => [k, toGeminiSchema(v as Record<string, unknown>)])
+    );
+  }
+  if (schema.items && typeof schema.items === "object") {
+    out.items = toGeminiSchema(schema.items as Record<string, unknown>);
+  }
+  return out;
+}
+
 function haversineApprox(a: LatLng, b: LatLng): number {
   const dx = (a.lat - b.lat) * 111;
   const dy = (a.lng - b.lng) * 111 * Math.cos((a.lat * Math.PI) / 180);
@@ -343,6 +363,154 @@ class AnthropicAssistant implements AssistantProvider {
   }
 }
 
+/* ── Gemini (free-tier alternative) ──────────────────────── */
+
+interface GeminiPart {
+  text?: string;
+  functionCall?: { name: string; args: Record<string, unknown> };
+  functionResponse?: { name: string; response: unknown };
+}
+interface GeminiContent {
+  role: "user" | "model" | "function";
+  parts: GeminiPart[];
+}
+
+type GeminiStreamEvent = { type: "text"; text: string } | { type: "functionCall"; name: string; args: Record<string, unknown> };
+
+/** Parses a Gemini streamGenerateContent SSE body, yielding text and functionCall parts as they arrive. */
+async function* parseGeminiStream(body: ReadableStream<Uint8Array>): AsyncGenerator<GeminiStreamEvent> {
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop() ?? "";
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed.startsWith("data:")) continue;
+      const payload = trimmed.slice(5).trim();
+      if (!payload) continue;
+      try {
+        const json = JSON.parse(payload);
+        const parts: GeminiPart[] = json?.candidates?.[0]?.content?.parts ?? [];
+        for (const p of parts) {
+          if (typeof p.text === "string" && p.text) yield { type: "text", text: p.text };
+          if (p.functionCall) yield { type: "functionCall", name: p.functionCall.name, args: p.functionCall.args ?? {} };
+        }
+      } catch {
+        // partial/non-JSON keepalive line — ignore
+      }
+    }
+  }
+}
+
+/**
+ * Google Gemini — free-tier-friendly alternative to Anthropic, same
+ * tool-calling contract (execTool, proposals, MAX_ROUNDS). Uses the plain
+ * REST API via fetch, no @google/genai dependency — see GEMINI_API_KEY in
+ * .env.example. Conversation history is stored in Gemini's own `parts`
+ * shape (see saveMessage calls below), mirroring how AnthropicAssistant
+ * stores Anthropic content blocks; the two aren't cross-compatible mid
+ * conversation, which only matters if you switch providers without
+ * starting a new chat.
+ */
+class GeminiAssistant implements AssistantProvider {
+  readonly id = "gemini";
+  private apiKey: string;
+  private model: string;
+  constructor(apiKey: string) {
+    this.apiKey = apiKey;
+    this.model = process.env.GEMINI_MODEL ?? "gemini-2.5-flash";
+  }
+
+  async *run(input: AssistantRun): AsyncGenerator<AiEvent> {
+    const history = listMessages(input.conversationId).map((m) => ({
+      role: m.role === "assistant" ? "model" : "user",
+      parts: typeof m.content === "string" ? [{ text: m.content }] : (m.content as GeminiPart[]),
+    })) as GeminiContent[];
+    saveMessage(input.conversationId, "user", input.message);
+    const contents: GeminiContent[] = [...history, { role: "user", parts: [{ text: input.message }] }];
+
+    const functionDeclarations = (Object.keys(toolSchemas) as ToolName[]).map((name) => ({
+      name,
+      description: toolDescription(name),
+      parameters: toGeminiSchema(zodToInputSchema(name)),
+    }));
+
+    const system = systemPrompt(JSON.stringify(buildTripContext(input.tripId)));
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:streamGenerateContent?alt=sse&key=${encodeURIComponent(this.apiKey)}`;
+
+    try {
+      for (let round = 0; round < MAX_ROUNDS; round++) {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents,
+            systemInstruction: { parts: [{ text: system }] },
+            tools: [{ functionDeclarations }],
+            generationConfig: { maxOutputTokens: 2000 },
+          }),
+        });
+        if (!res.ok || !res.body) {
+          throw new Error(`Gemini request failed: ${res.status} ${await res.text().catch(() => "")}`);
+        }
+
+        let assistantText = "";
+        const calls: { name: string; args: Record<string, unknown> }[] = [];
+        for await (const ev of parseGeminiStream(res.body)) {
+          if (ev.type === "text") {
+            assistantText += ev.text;
+            yield { type: "text", delta: ev.text };
+          } else {
+            calls.push({ name: ev.name, args: ev.args });
+            yield { type: "tool", name: ev.name };
+          }
+        }
+
+        const modelParts: GeminiPart[] = [];
+        if (assistantText) modelParts.push({ text: assistantText });
+        for (const c of calls) modelParts.push({ functionCall: { name: c.name, args: c.args } });
+        contents.push({ role: "model", parts: modelParts });
+
+        if (!calls.length) {
+          saveMessage(input.conversationId, "assistant", modelParts);
+          yield { type: "done" };
+          return;
+        }
+
+        const responseParts: GeminiPart[] = [];
+        for (const call of calls) {
+          const name = call.name as ToolName;
+          let output: unknown;
+          let ok = true;
+          try {
+            output = await execTool(name, call.args, input);
+          } catch (e) {
+            ok = false;
+            output = { error: "tool_failed", message: e instanceof Error ? e.message : "unknown" };
+          }
+          logToolCall(input.conversationId, call.name, call.args, output, ok);
+          const o = output as { proposalId?: string } | undefined;
+          if (call.name === "create_itinerary_change_preview" && o?.proposalId) {
+            yield { type: "proposal", proposalId: o.proposalId, summary: (call.args as { summary?: string })?.summary ?? "Itinerary change" };
+          }
+          responseParts.push({ functionResponse: { name: call.name, response: { content: JSON.stringify(output).slice(0, 12000) } } });
+        }
+        contents.push({ role: "function", parts: responseParts });
+      }
+      yield { type: "notice", message: "Stopped after several tool rounds — ask a follow-up to continue." };
+      yield { type: "done" };
+    } catch (e) {
+      console.error("[assistant:gemini]", e instanceof Error ? e.message : e);
+      yield { type: "error", message: "The assistant is temporarily unavailable. Please try again." };
+    }
+  }
+}
+
 function toolDescription(name: ToolName): string {
   const d: Record<ToolName, string> = {
     read_trip_context: "Re-read the latest trip, days, items, reservations and budget context.",
@@ -366,7 +534,7 @@ class DevAssistant implements AssistantProvider {
   readonly id = "dev";
   async *run(input: AssistantRun): AsyncGenerator<AiEvent> {
     saveMessage(input.conversationId, "user", input.message);
-    yield { type: "notice", message: "Development assistant — ANTHROPIC_API_KEY is not configured. Responses use sample data." };
+    yield { type: "notice", message: "Development assistant — no GEMINI_API_KEY or ANTHROPIC_API_KEY is configured. Responses use sample data." };
     const ctx = buildTripContext(input.tripId);
     const msg = input.message.toLowerCase();
     let reply: string;
@@ -388,7 +556,7 @@ class DevAssistant implements AssistantProvider {
       if (changes.adds.length) {
         const pid = createProposal(input.tripId, input.conversationId, `Draft ${Math.min(ctx.days.length, 3)}-day plan for ${dest} (sample data)`, changes, summarizeImpact(changes), input.actorId);
         yield { type: "proposal", proposalId: pid, summary: `Draft plan for ${dest}` };
-        reply = `I prepared a draft plan for ${dest} using development sample places (${changes.adds.length} activities across ${Math.min(ctx.days.length, 3)} day(s)). Review the preview panel and apply it if it looks right — nothing changes until you approve. Configure ANTHROPIC_API_KEY for the full assistant.`;
+        reply = `I prepared a draft plan for ${dest} using development sample places (${changes.adds.length} activities across ${Math.min(ctx.days.length, 3)} day(s)). Review the preview panel and apply it if it looks right — nothing changes until you approve. Configure GEMINI_API_KEY (free tier) or ANTHROPIC_API_KEY for the full assistant.`;
       } else {
         reply = "I could not find sample places for this destination in development mode. Try Istanbul, Riyadh, Jeddah or London, or configure the live providers.";
       }
@@ -408,6 +576,9 @@ class DevAssistant implements AssistantProvider {
 }
 
 export function assistantProvider(): AssistantProvider {
-  const key = process.env.ANTHROPIC_API_KEY;
-  return key ? new AnthropicAssistant(key) : new DevAssistant();
+  const geminiKey = process.env.GEMINI_API_KEY;
+  if (geminiKey) return new GeminiAssistant(geminiKey);
+  const anthropicKey = process.env.ANTHROPIC_API_KEY;
+  if (anthropicKey) return new AnthropicAssistant(anthropicKey);
+  return new DevAssistant();
 }

@@ -10,7 +10,8 @@ import { contact, brand } from "@/data/site";
  * the trip planner's trip-scoped assistant (src/server/ai/assistant.ts).
  * It answers visitor questions about services, destinations, and packages
  * using only real site data, and cannot mutate anything.
- * Provider abstraction: Anthropic when ANTHROPIC_API_KEY is set, otherwise
+ * Provider abstraction: Gemini when GEMINI_API_KEY is set (checked first —
+ * free tier available), else Anthropic when ANTHROPIC_API_KEY is set, else
  * a labeled development fallback grounded in the same data.
  */
 
@@ -82,6 +83,81 @@ export interface ConciergeProvider {
   run(input: ConciergeRun): AsyncGenerator<AiEvent>;
 }
 
+/**
+ * Google Gemini — free-tier-friendly alternative to Anthropic. Uses the
+ * plain REST API via fetch (no @google/genai dependency) since a single
+ * API-key query param is all auth this needs, unlike the OAuth-flavored
+ * Google Calendar integration. See GEMINI_API_KEY in .env.example.
+ */
+class GeminiConcierge implements ConciergeProvider {
+  readonly id = "gemini";
+  private apiKey: string;
+  private model: string;
+  constructor(apiKey: string) {
+    this.apiKey = apiKey;
+    this.model = process.env.GEMINI_MODEL ?? "gemini-2.5-flash";
+  }
+
+  async *run(input: ConciergeRun): AsyncGenerator<AiEvent> {
+    const system = systemPrompt(JSON.stringify(buildSiteContext()), input.lang);
+    const contents = input.messages.map((m) => ({
+      role: m.role === "assistant" ? "model" : "user",
+      parts: [{ text: m.content }],
+    }));
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:streamGenerateContent?alt=sse&key=${encodeURIComponent(this.apiKey)}`;
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents,
+          systemInstruction: { parts: [{ text: system }] },
+          generationConfig: { maxOutputTokens: 700 },
+        }),
+      });
+      if (!res.ok || !res.body) {
+        throw new Error(`Gemini request failed: ${res.status} ${await res.text().catch(() => "")}`);
+      }
+      for await (const text of parseGeminiSse(res.body)) {
+        yield { type: "text", delta: text };
+      }
+      yield { type: "done" };
+    } catch (e) {
+      console.error("[concierge:gemini]", e instanceof Error ? e.message : e);
+      yield { type: "error", message: "The concierge is temporarily unavailable. Please try again or use the enquiry form." };
+    }
+  }
+}
+
+/** Parses a Gemini streamGenerateContent SSE body into plain text deltas. */
+async function* parseGeminiSse(body: ReadableStream<Uint8Array>): AsyncGenerator<string> {
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop() ?? "";
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed.startsWith("data:")) continue;
+      const payload = trimmed.slice(5).trim();
+      if (!payload || payload === "[DONE]") continue;
+      try {
+        const json = JSON.parse(payload);
+        const parts = json?.candidates?.[0]?.content?.parts ?? [];
+        for (const p of parts) {
+          if (typeof p.text === "string") yield p.text;
+        }
+      } catch {
+        // partial/non-JSON keepalive line — ignore
+      }
+    }
+  }
+}
+
 class AnthropicConcierge implements ConciergeProvider {
   readonly id = "anthropic";
   private client: Anthropic;
@@ -117,7 +193,7 @@ class DevConcierge implements ConciergeProvider {
   async *run(input: ConciergeRun): AsyncGenerator<AiEvent> {
     yield {
       type: "notice",
-      message: "Development concierge — ANTHROPIC_API_KEY is not configured. Responses use keyword matching over the site's own data.",
+      message: "Development concierge — no GEMINI_API_KEY or ANTHROPIC_API_KEY is configured. Responses use keyword matching over the site's own data.",
     };
     const ar = input.lang === "ar";
     const last = input.messages[input.messages.length - 1]?.content ?? "";
@@ -171,6 +247,9 @@ class DevConcierge implements ConciergeProvider {
 }
 
 export function conciergeProvider(): ConciergeProvider {
-  const key = process.env.ANTHROPIC_API_KEY;
-  return key ? new AnthropicConcierge(key) : new DevConcierge();
+  const geminiKey = process.env.GEMINI_API_KEY;
+  if (geminiKey) return new GeminiConcierge(geminiKey);
+  const anthropicKey = process.env.ANTHROPIC_API_KEY;
+  if (anthropicKey) return new AnthropicConcierge(anthropicKey);
+  return new DevConcierge();
 }

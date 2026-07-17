@@ -58,13 +58,18 @@ endpoints are rate-limited (SQLite fixed window).
   scheduling with pace limits, category opening hours, lunch break, overflow
   to next day. Never drops items; outputs conflicts + explanations; applied
   only through a previewed, undoable change proposal.
-- **AI — Anthropic tool-use** (`src/server/ai/assistant.ts`): env-driven
-  model (`ANTHROPIC_MODEL`), 12 Zod-validated tools, streaming NDJSON.
-  Mutations only via `create_itinerary_change_preview` → `ai_change_proposals`
-  → user Apply/Cancel (+ Undo). Locked items are guarded server-side. The
-  system prompt forbids uncited prices/availability/hours/weather/visa claims;
-  non-live tool data is labeled. Without a key, a **DevAssistant** (clearly
-  labeled) still produces sample-data proposals so flows are testable.
+- **AI — Gemini or Anthropic tool-use** (`src/server/ai/assistant.ts`):
+  `GEMINI_API_KEY` (free tier, checked first) or `ANTHROPIC_API_KEY`, 12
+  Zod-validated tools, streaming NDJSON. Same tool-calling contract on both
+  providers — Gemini's function-calling schema is derived from the same
+  Zod-backed JSON schema Anthropic uses (`toGeminiSchema`), so both hit the
+  exact same `execTool`. Mutations only via `create_itinerary_change_preview`
+  → `ai_change_proposals` → user Apply/Cancel (+ Undo). Locked items are
+  guarded server-side. The system prompt forbids uncited
+  prices/availability/hours/weather/visa claims; non-live tool data is
+  labeled. Without a key, a **DevAssistant** (clearly labeled) still produces
+  sample-data proposals so flows are testable. The public concierge chat
+  widget (`src/server/ai/concierge.ts`) uses the same provider precedence.
 - **Collaboration** — invite tokens (7-day expiry), role checks on every
   mutation, activity log, comments, optimistic-concurrency `version` on trips,
   25 s polling refresh. Realtime presence/broadcast: phase two.

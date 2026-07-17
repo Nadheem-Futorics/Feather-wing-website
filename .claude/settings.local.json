@@ -156,7 +156,21 @@
       "Bash(powershell -Command \"Stop-Process -Id 10804 -Force\")",
       "Bash(timeout 180 npx -y lighthouse http://localhost:3100/ --output=json --output-path=/tmp/lh-home2.json --chrome-flags=\"--headless --no-sandbox\" --only-categories=performance,accessibility,best-practices,seo --preset=desktop)",
       "Bash(timeout 180 npx -y lighthouse http://localhost:3100/ --output=json --output-path=/tmp/lh-mobile.json --chrome-flags=\"--headless --no-sandbox\" --only-categories=performance,accessibility,best-practices,seo)",
-      "Bash(rm -f /tmp/lh-home.json /tmp/lh-home2.json /tmp/lh-mobile.json \"/c/Users/nadhe/AppData/Local/Temp/lh-home.json\" \"/c/Users/nadhe/AppData/Local/Temp/lh-home2.json\" \"/c/Users/nadhe/AppData/Local/Temp/lh-mobile.json\" 2>/dev/null; echo done)"
+      "Bash(rm -f /tmp/lh-home.json /tmp/lh-home2.json /tmp/lh-mobile.json \"/c/Users/nadhe/AppData/Local/Temp/lh-home.json\" \"/c/Users/nadhe/AppData/Local/Temp/lh-home2.json\" \"/c/Users/nadhe/AppData/Local/Temp/lh-mobile.json\" 2>/dev/null; echo done)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3100/)",
+      "WebFetch(domain:ai.google.dev)",
+      "WebSearch",
+      "Bash(powershell -Command \"Stop-Process -Id 4468 -Force\")",
+      "Bash(railway --version)",
+      "Bash(npm list *)",
+      "Bash(timeout 60 npx --yes @railway/cli --version)",
+      "Bash(gh auth *)",
+      "PowerShell(Get-Command gh -ErrorAction SilentlyContinue)",
+      "PowerShell(gh --version 2>&1)",
+      "PowerShell(Get-Command winget -ErrorAction SilentlyContinue)",
+      "Bash(env)",
+      "Bash(git checkout *)",
+      "Bash(git add *)"
     ]
   }
 }
