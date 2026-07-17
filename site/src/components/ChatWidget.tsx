@@ -42,12 +42,38 @@ function getSpeechRecognitionCtor(): SpeechRecognitionCtor | null {
   return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
 }
 
+// The Web Speech API has no standardized gender field on SpeechSynthesisVoice,
+// so this is a name-based heuristic — covers the common Windows/Edge, macOS/
+// Safari, and Chrome/Android voice packs for both English and Arabic. Sarah
+// is voiced as female, matching her name/persona.
+const FEMALE_VOICE_HINTS = [
+  "female", "zira", "aria", "jenny", "michelle", "samantha", "victoria", "karen",
+  "moira", "tessa", "fiona", "susan", "linda", "heera", "salma", "hoda", "amira",
+  "nora", "lily", "emma", "sonia", "elena", "catherine", "ava", "sara", "sarah",
+];
+const MALE_VOICE_HINTS = [
+  "male", "david", "mark", "guy", "george", "daniel", "alex", "naayf", "hamed",
+  "fred", "james", "ryan", "tom", "oliver", "matthew",
+];
+
 function pickNaturalVoice(lang: "en" | "ar"): SpeechSynthesisVoice | null {
   const voices = window.speechSynthesis.getVoices();
   const prefix = lang === "ar" ? "ar" : "en";
   const inPrefix = voices.filter((v) => v.lang.toLowerCase().startsWith(prefix));
-  const natural = inPrefix.find((v) => /natural|neural|online/i.test(v.name));
-  return natural ?? inPrefix[0] ?? voices[0] ?? null;
+  const pool = inPrefix.length ? inPrefix : voices;
+
+  const isFemale = (v: SpeechSynthesisVoice) => FEMALE_VOICE_HINTS.some((h) => v.name.toLowerCase().includes(h));
+  const isMale = (v: SpeechSynthesisVoice) => MALE_VOICE_HINTS.some((h) => v.name.toLowerCase().includes(h));
+  const isNatural = (v: SpeechSynthesisVoice) => /natural|neural|online/i.test(v.name);
+
+  return (
+    pool.find((v) => isFemale(v) && isNatural(v)) ??
+    pool.find(isFemale) ??
+    pool.find((v) => isNatural(v) && !isMale(v)) ??
+    pool.find((v) => !isMale(v)) ??
+    pool[0] ??
+    null
+  );
 }
 
 /**
