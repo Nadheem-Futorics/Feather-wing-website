@@ -1,0 +1,208 @@
+.outer {
+  position: relative;
+  background: var(--ink);
+}
+
+.stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: var(--ink);
+}
+
+.staticScene {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+}
+
+/* captions */
+.centerCaption {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2rem;
+  z-index: 3;
+}
+
+.heroLogo { filter: drop-shadow(0 0 44px rgba(115, 85, 216, 0.55)) drop-shadow(0 0 90px rgba(229, 165, 46, 0.25)); }
+
+.tagline {
+  margin-top: 1.4rem;
+  font-size: clamp(1.15rem, 2.4vw, 1.7rem);
+  color: var(--ivory);
+  letter-spacing: 0.14em;
+}
+
+.lowCaption {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 14vh;
+  display: flex;
+  justify-content: center;
+  text-align: center;
+  padding-inline: 1.5rem;
+  z-index: 3;
+}
+
+.poetic {
+  font-size: clamp(1.4rem, 3.2vw, 2.4rem);
+  color: var(--white);
+  text-shadow: 0 2px 30px rgba(3, 6, 17, 0.8);
+  max-width: 30ch;
+}
+
+.flightLine {
+  display: block;
+  line-height: 1.6;
+}
+
+.dividerText {
+  margin-block: 1.2rem;
+  font-size: clamp(0.85rem, 1.6vw, 1.05rem);
+  font-weight: 600;
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  color: var(--gold-light);
+}
+[dir="rtl"] .dividerText { letter-spacing: 0.2em; }
+
+.destCaption {
+  position: absolute;
+  inset-inline-start: clamp(1.5rem, 7vw, 7rem);
+  bottom: clamp(4rem, 12vh, 8rem);
+  max-width: min(560px, 82vw);
+  z-index: 3;
+}
+
+.destIndex {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.4em;
+  color: var(--gold);
+}
+
+.destTitle {
+  font-size: clamp(2.6rem, 7vw, 5.2rem);
+  color: var(--white);
+  margin-block: 0.5rem 0.9rem;
+  text-shadow: 0 4px 40px rgba(3, 6, 17, 0.85);
+}
+
+.destLine {
+  margin-top: 0.9rem;
+  font-size: clamp(1rem, 1.9vw, 1.25rem);
+  color: var(--ivory);
+  opacity: 0.92;
+  text-shadow: 0 2px 24px rgba(3, 6, 17, 0.9);
+}
+
+/* finale */
+.finale {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2rem;
+  z-index: 4;
+}
+
+.finaleTitle {
+  font-size: clamp(2.6rem, 7.5vw, 5.6rem);
+  color: var(--white);
+  text-shadow: 0 4px 50px rgba(3, 6, 17, 0.9);
+}
+.finaleTitle span { display: block; }
+.goldText {
+  background: linear-gradient(120deg, var(--gold) 20%, var(--gold-light) 50%, var(--gold) 80%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.finaleTag {
+  margin-top: 1.2rem;
+  font-size: clamp(1rem, 2vw, 1.3rem);
+  letter-spacing: 0.2em;
+  color: var(--ivory);
+}
+[dir="rtl"] .finaleTag { letter-spacing: 0.05em; }
+
+.ctaRow {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2.4rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* progress rail */
+.rail {
+  position: absolute;
+  inset-inline-start: clamp(0.9rem, 2.4vw, 2.2rem);
+  top: 20vh;
+  bottom: 20vh;
+  width: 2px;
+  background: rgba(245, 241, 232, 0.14);
+  border-radius: 2px;
+  z-index: 5;
+}
+
+.railFill {
+  width: 100%;
+  height: 100%;
+  transform-origin: top;
+  transform: scaleY(0);
+  background: linear-gradient(180deg, var(--gold-light), var(--gold));
+  border-radius: 2px;
+  box-shadow: 0 0 12px rgba(229, 165, 46, 0.5);
+}
+
+@media (max-width: 820px) {
+  .rail { display: none; }
+}
+
+/* scroll hint */
+.scrollHint {
+  position: absolute;
+  bottom: 1.6rem;
+  inset-inline: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  z-index: 5;
+  color: var(--ivory);
+  font-size: 0.7rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+[dir="rtl"] .scrollHint { letter-spacing: 0.12em; }
+
+.scrollLine {
+  width: 1px;
+  height: 44px;
+  background: linear-gradient(180deg, var(--gold-light), transparent);
+  display: block;
+}
+

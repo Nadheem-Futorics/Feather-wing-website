@@ -1,0 +1,198 @@
+/* ──────────────────────────────────────────────
+   FEATHER WING TOURS — design system
+   ────────────────────────────────────────────── */
+
+:root {
+  --ink: #030611;          /* near-black midnight navy */
+  --navy: #09122d;         /* deep navy */
+  --purple: #4b3194;       /* royal purple */
+  --violet: #7355d8;       /* soft violet */
+  --gold: #e5a52e;         /* warm gold */
+  --gold-light: #f7cb6c;   /* light gold */
+  --ivory: #f5f1e8;        /* soft ivory */
+  --white: #ffffff;
+
+  --font-serif: var(--font-playfair), "Playfair Display", Georgia, serif;
+  --font-sans: var(--font-inter), Inter, system-ui, sans-serif;
+  --font-ar: var(--font-amiri), "Amiri", serif;
+
+  --nav-h: 76px;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --gold-line: linear-gradient(90deg, transparent, var(--gold) 30%, var(--gold-light) 50%, var(--gold) 70%, transparent);
+}
+
+* { box-sizing: border-box; padding: 0; margin: 0; }
+
+html { scroll-behavior: smooth; overflow-x: clip; }
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+
+body {
+  background: var(--ink);
+  color: var(--ivory);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+
+[dir="rtl"] .serif, [dir="rtl"] h1, [dir="rtl"] h2, [dir="rtl"] h3 { font-family: var(--font-ar); }
+
+img, video, canvas, svg { max-width: 100%; display: block; }
+
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+
+::selection { background: rgba(229, 165, 46, 0.35); color: var(--white); }
+
+/* Typography */
+.serif { font-family: var(--font-serif); }
+h1, h2, h3 { font-family: var(--font-serif); font-weight: 500; line-height: 1.12; }
+
+.kicker {
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+[dir="rtl"] .kicker { letter-spacing: 0.18em; }
+
+.section-title {
+  font-size: clamp(2rem, 4.6vw, 3.6rem);
+  color: var(--white);
+  margin-top: 0.9rem;
+}
+
+.gold-rule {
+  height: 1px;
+  background: var(--gold-line);
+  border: 0;
+  width: min(320px, 60%);
+}
+
+/* Focus visibility (accessibility) */
+:focus-visible {
+  outline: 2px solid var(--gold-light);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* Skip-to-content link (WCAG 2.4.1 Bypass Blocks) — hidden off-screen
+   until it receives keyboard focus, then jumps above everything else. */
+.skip-link {
+  position: fixed;
+  top: -100px;
+  left: 1rem;
+  z-index: 3000;
+  padding: 0.8rem 1.4rem;
+  background: var(--gold);
+  color: var(--ink);
+  font-weight: 700;
+  border-radius: 8px;
+  transition: top 0.2s var(--ease-out);
+}
+.skip-link:focus {
+  top: 1rem;
+}
+[dir="rtl"] .skip-link { left: auto; right: 1rem; }
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  min-height: 48px;
+  padding: 0.85rem 2.1rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.92rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: transform 0.35s var(--ease-out), box-shadow 0.35s var(--ease-out), background 0.35s, color 0.35s;
+  will-change: transform;
+}
+[dir="rtl"] .btn { letter-spacing: 0; font-size: 1rem; }
+.btn-gold {
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+  color: var(--ink);
+  box-shadow: 0 8px 32px rgba(229, 165, 46, 0.28);
+}
+.btn-gold:hover { transform: translateY(-2px); box-shadow: 0 14px 44px rgba(229, 165, 46, 0.42); }
+.btn-ghost {
+  border: 1px solid rgba(247, 203, 108, 0.55);
+  color: var(--gold-light);
+  background: rgba(9, 18, 45, 0.35);
+  backdrop-filter: blur(8px);
+}
+.btn-ghost:hover { background: rgba(75, 49, 148, 0.35); transform: translateY(-2px); }
+
+/* Layout helpers */
+.wrap { width: min(1200px, calc(100% - 3rem)); margin-inline: auto; }
+.section { padding: clamp(5rem, 10vh, 8rem) 0; position: relative; }
+
+/* Glass card */
+.glass {
+  background: linear-gradient(160deg, rgba(9, 18, 45, 0.72), rgba(3, 6, 17, 0.82));
+  border: 1px solid rgba(115, 85, 216, 0.22);
+  backdrop-filter: blur(14px);
+  border-radius: 18px;
+}
+
+/* Scene art canvas fills */
+.scene-fill { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+/* Grain + vignette overlays for cinematic depth */
+.vignette {
+  position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(120% 90% at 50% 40%, transparent 55%, rgba(3, 6, 17, 0.55) 100%),
+    linear-gradient(180deg, rgba(3, 6, 17, 0.45) 0%, transparent 18%, transparent 78%, rgba(3, 6, 17, 0.75) 100%);
+}
+
+/* Reduced motion — global kill-switch */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001s !important;
+  }
+  html { scroll-behavior: auto; }
+}
+
+/* Custom cursor (desktop pointer devices only) */
+.fwt-cursor { display: none; }
+@media (hover: hover) and (pointer: fine) {
+  .fwt-cursor {
+    position: fixed; top: 0; left: 0; z-index: 9999;
+    width: 18px; height: 18px; border-radius: 50%;
+    border: 1.5px solid var(--gold-light);
+    background: rgba(229, 165, 46, 0.12);
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    transition: width 0.25s var(--ease-out), height 0.25s var(--ease-out), background 0.25s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .fwt-cursor.is-label {
+    width: 74px; height: 74px;
+    background: rgba(3, 6, 17, 0.72);
+    backdrop-filter: blur(4px);
+  }
+  .fwt-cursor span {
+    font-size: 0.62rem; font-weight: 600; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--gold-light);
+    opacity: 0; transition: opacity 0.2s;
+    white-space: nowrap;
+  }
+  .fwt-cursor.is-label span { opacity: 1; }
+}
+
+/* Screen-reader only */
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+@keyframes shimmer-sweep { 0% { transform: translateX(-120%); } 100% { transform: translateX(120%); } }

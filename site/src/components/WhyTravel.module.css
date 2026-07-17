@@ -1,0 +1,30 @@
+.root { background: var(--ink); }
+
+.grid {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 1.4rem;
+  margin-top: 3rem;
+}
+
+.item {
+  padding: 1.8rem 1.5rem;
+  border-radius: 14px;
+  border: 1px solid rgba(115, 85, 216, 0.2);
+  transition: border-color 0.4s, transform 0.4s var(--ease-out);
+}
+.item:hover { border-color: rgba(229, 165, 46, 0.45); transform: translateY(-4px); }
+
+.item h3 {
+  font-size: 1.15rem;
+  color: var(--white);
+  margin-block: 1.1rem 0.6rem;
+}
+
+.item p {
+  font-size: 0.88rem;
+  line-height: 1.7;
+  color: var(--ivory);
+  opacity: 0.82;
+}

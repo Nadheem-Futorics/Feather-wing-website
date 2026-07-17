@@ -1,0 +1,224 @@
+{
+  "FW_DEST_01_AlUla": {
+    "frames": 76,
+    "mp4": true,
+    "webm": true,
+    "mobile": true
+  },
+  "FW_DEST_02_Hegra": {
+    "frames": 76,
+    "mp4": true,
+    "webm": true,
+    "mobile": true
+  },
+  "FW_DEST_03_AlUlaCanyons": {
+    "frames": 53,
+    "mp4": true,
+    "webm": true,
+    "mobile": true
+  },
+  "FW_DEST_04_Farasan": {
+    "frames": 76,
+    "mp4": true,
+    "webm": true,
+    "mobile": true
+  },
+  "FW_DEST_05_RedSea": {
+    "frames": 36,
+    "mp4": true,
+    "webm": true,
+    "mobile": true
+  },
+  "FW_DEST_06_Diriyah": {
+    "frames": 76,
+    "mp4": true,
+    "webm": true,
+    "mobile": true
+  },
+  "FW_DEST_07_Riyadh": {
+    "frames": 76,
+    "mp4": true,
+    "webm": true,
+    "mobile": true
+  },
+  "FW_DEST_08_Jeddah": {
+    "frames": 76,
+    "mp4": true,
+    "webm": true,
+    "mobile": true
+  },
+  "FW_DEST_09_Asir": {
+    "frames": 76,
+    "mp4": true,
+    "webm": true,
+    "mobile": true
+  },
+  "FW_DEST_10_ElephantRock": {
+    "frames": 76,
+    "mp4": true,
+    "webm": true,
+    "mobile": true
+  },
+  "FW_DEST_11_Madinah": {
+    "frames": 76,
+    "mp4": true,
+    "webm": true,
+    "mobile": true
+  },
+  "FW_DEST_12_EmptyQuarter": {
+    "frames": 76,
+    "mp4": true,
+    "webm": true,
+    "mobile": true
+  },
+  "FW_DEST_13_RijalAlmaa": {
+    "frames": 61,
+    "mp4": true,
+    "webm": true,
+    "mobile": true
+  },
+  "FW_DEST_14_DammamKhobar": {
+    "frames": 76,
+    "mp4": true,
+    "webm": true,
+    "mobile": true
+  },
+  "FW_DEST_15_ToTheWorld": {
+    "frames": 45,
+    "mp4": true,
+    "webm": true,
+    "mobile": true
+  },
+  "FW_HERO_01_LogoReveal": {
+    "frames": 91,
+    "mp4": true,
+    "webm": true,
+    "mobile": true
+  },
+  "FW_HERO_02_LogoTransform": {
+    "frames": 91,
+    "mp4": true,
+    "webm": true,
+    "mobile": true
+  },
+  "FW_HERO_03_FirstFlight": {
+    "frames": 91,
+    "mp4": true,
+    "webm": true,
+    "mobile": true
+  },
+  "FW_HERO_31_GoldenHorizon": {
+    "frames": 91,
+    "mp4": true,
+    "webm": true,
+    "mobile": true
+  },
+  "FW_INTL_01_London": {
+    "frames": 76,
+    "mp4": true,
+    "webm": true,
+    "mobile": true
+  },
+  "FW_INTL_02_Paris": {
+    "frames": 76,
+    "mp4": true,
+    "webm": true,
+    "mobile": true
+  },
+  "FW_INTL_03_Dubai": {
+    "frames": 53,
+    "mp4": true,
+    "webm": true,
+    "mobile": true
+  },
+  "FW_INTL_04_Istanbul": {
+    "frames": 76,
+    "mp4": true,
+    "webm": true,
+    "mobile": true
+  },
+  "FW_INTL_05_Maldives": {
+    "frames": 76,
+    "mp4": true,
+    "webm": true,
+    "mobile": true
+  },
+  "FW_INTL_06_Switzerland": {
+    "frames": 32,
+    "mp4": true,
+    "webm": true,
+    "mobile": true
+  },
+  "FW_INTL_07_NewYork": {
+    "frames": 61,
+    "mp4": true,
+    "webm": true,
+    "mobile": true
+  },
+  "FW_INTL_08_Japan": {
+    "frames": 76,
+    "mp4": true,
+    "webm": true,
+    "mobile": true
+  },
+  "FW_SERVICE_01_TicketBooking": {
+    "frames": 0,
+    "mp4": true,
+    "webm": true,
+    "mobile": true
+  },
+  "FW_SERVICE_02_VisaServices": {
+    "frames": 0,
+    "mp4": true,
+    "webm": true,
+    "mobile": true
+  },
+  "FW_SERVICE_03_CarTrips": {
+    "frames": 0,
+    "mp4": true,
+    "webm": true,
+    "mobile": true
+  },
+  "FW_SERVICE_04_DesertCamping": {
+    "frames": 0,
+    "mp4": true,
+    "webm": true,
+    "mobile": true
+  },
+  "FW_SERVICE_05_ScheduledTrips": {
+    "frames": 0,
+    "mp4": true,
+    "webm": true,
+    "mobile": true
+  },
+  "FW_SERVICE_06_UmrahServices": {
+    "frames": 0,
+    "mp4": true,
+    "webm": true,
+    "mobile": true
+  },
+  "FW_SERVICE_07_IslamicTravel": {
+    "frames": 0,
+    "mp4": true,
+    "webm": true,
+    "mobile": true
+  },
+  "FW_SERVICE_08_GatheringPrograms": {
+    "frames": 0,
+    "mp4": true,
+    "webm": true,
+    "mobile": true
+  },
+  "FW_SERVICE_09_CorporateEvents": {
+    "frames": 0,
+    "mp4": true,
+    "webm": true,
+    "mobile": true
+  },
+  "FW_SERVICE_10_EmployeeWellbeing": {
+    "frames": 0,
+    "mp4": true,
+    "webm": true,
+    "mobile": true
+  }
+}

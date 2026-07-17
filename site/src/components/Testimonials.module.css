@@ -1,0 +1,100 @@
+.root { background: linear-gradient(180deg, var(--ink), #0a0f28 50%, var(--ink)); }
+
+.note { margin-top: 0.8rem; font-size: 0.75rem; color: var(--gold); opacity: 0.8; }
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(320px, 1fr);
+  gap: 1.8rem;
+  align-items: stretch;
+  margin-top: 2.6rem;
+}
+.reviews { min-width: 0; }
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+}
+
+.card {
+  max-width: 760px;
+  padding: clamp(1.8rem, 4vw, 3rem);
+  border-radius: 20px;
+  border: 1px solid rgba(115, 85, 216, 0.25);
+  background: linear-gradient(165deg, rgba(9, 18, 45, 0.7), rgba(3, 6, 17, 0.85));
+}
+
+.stars { color: var(--gold-light); letter-spacing: 0.2em; font-size: 1rem; }
+.starsDim { color: rgba(245, 241, 232, 0.25); }
+
+.quote {
+  margin-top: 1.3rem;
+  font-size: clamp(1.15rem, 2.4vw, 1.55rem);
+  line-height: 1.65;
+  color: var(--white);
+}
+
+.who {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin-top: 1.8rem;
+}
+
+.avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-serif);
+  font-size: 1.3rem;
+  color: var(--ink);
+  background: linear-gradient(135deg, var(--gold), var(--gold-light));
+  flex-shrink: 0;
+}
+
+.who strong { display: block; color: var(--ivory); font-size: 0.95rem; }
+.who em { display: block; font-style: normal; font-size: 0.78rem; color: var(--gold-light); opacity: 0.85; margin-top: 0.2rem; }
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  margin-top: 1.6rem;
+}
+
+.controls > button {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 1px solid rgba(247, 203, 108, 0.4);
+  color: var(--gold-light);
+  font-size: 1.1rem;
+  transition: background 0.3s;
+}
+.controls > button:hover { background: rgba(75, 49, 148, 0.4); }
+
+.dots { display: flex; gap: 0.3rem; }
+/* Visible dot stays small; the button itself is a full 24x24 tap target
+   (WCAG 2.2 AA target size) via a centered ::after — flagged by Lighthouse
+   ("Touch targets do not have sufficient size or spacing"). */
+.dot, .dotOn {
+  width: 24px;
+  height: 24px;
+  min-height: 24px;
+  border-radius: 50%;
+  background: transparent;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.dot::after, .dotOn::after {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(245, 241, 232, 0.25);
+  transition: background 0.3s, transform 0.3s;
+}
+.dotOn::after { background: var(--gold); transform: scale(1.25); }

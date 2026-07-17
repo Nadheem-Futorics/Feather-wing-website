@@ -1,0 +1,48 @@
+.root {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background:
+    radial-gradient(70% 60% at 50% 45%, rgba(75, 49, 148, 0.28), transparent 70%),
+    var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.85s var(--ease-out), visibility 0.85s;
+}
+
+.gone { opacity: 0; visibility: hidden; pointer-events: none; }
+
+.center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.6rem;
+  text-align: center;
+}
+
+.center p {
+  font-size: 0.72rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--ivory);
+  opacity: 0.7;
+}
+[dir="rtl"] .center p { letter-spacing: 0.1em; }
+
+.bar {
+  width: 180px;
+  height: 2px;
+  border-radius: 2px;
+  background: rgba(245, 241, 232, 0.15);
+  overflow: hidden;
+}
+
+.bar i {
+  display: block;
+  width: 40%;
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--gold), var(--gold-light));
+  animation: shimmer-sweep 1.4s ease-in-out infinite;
+}
