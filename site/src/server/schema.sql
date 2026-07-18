@@ -453,6 +453,24 @@ CREATE TABLE IF NOT EXISTS meetings (
 );
 CREATE INDEX IF NOT EXISTS idx_meetings_start ON meetings(start_at);
 
+-- Homepage destination gallery (admin-managed via /admin/travel-content) —
+-- deliberately separate from the hero's video journey (which stays
+-- hardcoded to its pre-rendered Seedance footage) and from featured_trips
+-- (which carries pricing). Just an image + a name.
+CREATE TABLE IF NOT EXISTS destination_cards (
+  id TEXT PRIMARY KEY,
+  title_en TEXT NOT NULL,
+  title_ar TEXT NOT NULL,
+  subtitle_en TEXT,
+  subtitle_ar TEXT,
+  image_path TEXT,             -- relative path under TP_DATA_DIR/uploads/destinations
+  image_mime TEXT,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  active INTEGER NOT NULL DEFAULT 1,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS offers (
   id TEXT PRIMARY KEY,
   scene TEXT NOT NULL DEFAULT 'dunes',

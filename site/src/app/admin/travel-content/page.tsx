@@ -17,6 +17,9 @@ interface OfferRow {
 interface KbRow {
   id: string; category: string; title: L; content: L; active: boolean;
 }
+interface DestinationRow {
+  id: string; title: L; subtitle: L; hasImage: boolean; active: boolean;
+}
 
 const SCENES = ["canyon", "hegra", "dunes", "serene-city", "heritage", "elephant-rock", "istanbul", "maldives", "mountains", "skyline", "sea", "london", "paris", "dubai", "switzerland", "newyork", "japan", "globe"];
 const HUES = ["gold", "sand", "aqua", "navy", "green", "violet", "rose"];
@@ -150,12 +153,102 @@ function KbForm({ onSaved }: { onSaved: () => void }) {
   );
 }
 
+function DestinationForm({ onSaved }: { onSaved: () => void }) {
+  const empty = { titleEn: "", titleAr: "", subtitleEn: "", subtitleAr: "" };
+  const [f, setF] = useState(empty);
+  const [file, setFile] = useState<File | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const set = (k: string, v: unknown) => setF((p) => ({ ...p, [k]: v }));
+  return (
+    <form
+      className="tpCard"
+      style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.7rem", marginBottom: "1.4rem" }}
+      onSubmit={async (e) => {
+        e.preventDefault();
+        if (!file) { setErr("Please choose a photo."); return; }
+        setBusy(true); setErr(null);
+        try {
+          const { id } = await jpost<{ id: string }>("/api/tp/admin/destinations", f);
+          const formData = new FormData();
+          formData.append("id", id);
+          formData.append("file", file);
+          await api("/api/tp/admin/destinations/image", { method: "POST", body: formData });
+          setF(empty); setFile(null); onSaved();
+        } catch (e) { setErr(e instanceof Error ? e.message : "Failed"); } finally { setBusy(false); }
+      }}
+    >
+      <h3 className="serif" style={{ gridColumn: "1 / -1", color: "var(--white)" }}>Add a destination</h3>
+      <p className="tpMuted" style={{ gridColumn: "1 / -1", marginTop: -6 }}>
+        Image + name only — no price. Shown in the new Destinations gallery on the homepage, separate from the hero video journey.
+      </p>
+      {field("Title (EN)", <input value={f.titleEn} onChange={(e) => set("titleEn", e.target.value)} required />)}
+      {field("Title (AR)", <input value={f.titleAr} onChange={(e) => set("titleAr", e.target.value)} dir="rtl" required />)}
+      {field("Short line (EN)", <input value={f.subtitleEn} onChange={(e) => set("subtitleEn", e.target.value)} placeholder="A one-line description" />)}
+      {field("Short line (AR)", <input value={f.subtitleAr} onChange={(e) => set("subtitleAr", e.target.value)} dir="rtl" />)}
+      {field("Photo (JPEG/PNG/WebP, max 5MB)", <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => setFile(e.target.files?.[0] ?? null)} required />)}
+      {err && <p className="tpErr" style={{ gridColumn: "1 / -1" }}>{err}</p>}
+      <button className="tpBtn tpBtnGold" disabled={busy} type="submit" style={{ gridColumn: "1 / -1" }}>{busy ? "…" : "Add destination"}</button>
+    </form>
+  );
+}
+
+function DestinationRowItem({
+  d, onChanged, onImageReplaced,
+}: { d: DestinationRow; onChanged: (body: unknown, method: "PATCH" | "DELETE") => void; onImageReplaced: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const replaceImage = async (file: File) => {
+    setBusy(true);
+    try {
+      const formData = new FormData();
+      formData.append("id", d.id);
+      formData.append("file", file);
+      await api("/api/tp/admin/destinations/image", { method: "POST", body: formData });
+      onImageReplaced();
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div className="tpItem">
+      <div className="tpItemBody" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+          {d.hasImage && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={`/api/tp/destinations/image/${d.id}`} alt="" width={56} height={42} style={{ objectFit: "cover", borderRadius: 6 }} />
+          )}
+          <div>
+            <div className="tpItemName">
+              {d.title.en} {!d.active && <span className="tpBadge tpBadgeDev">hidden</span>} {!d.hasImage && <span className="tpBadge tpBadgeDev">no photo</span>}
+            </div>
+            <div className="tpItemMeta"><span>{d.subtitle.en}</span></div>
+          </div>
+        </div>
+        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+          <label className="tpBtn tpBtnSm" style={{ cursor: "pointer" }}>
+            {busy ? "…" : d.hasImage ? "Replace photo" : "Add photo"}
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              style={{ display: "none" }}
+              onChange={(e) => { const f = e.target.files?.[0]; if (f) replaceImage(f); e.target.value = ""; }}
+            />
+          </label>
+          <button className="tpBtn tpBtnSm" onClick={() => onChanged({ id: d.id, data: { active: !d.active } }, "PATCH")}>{d.active ? "Hide" : "Show"}</button>
+          <button className="tpBtn tpBtnSm tpBtnDanger" onClick={() => onChanged({ id: d.id }, "DELETE")}>Delete</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function TravelContentPage() {
   const router = useRouter();
-  const [tab, setTab] = useState<"trips" | "offers" | "kb">("trips");
+  const [tab, setTab] = useState<"trips" | "destinations" | "offers" | "kb">("trips");
   const [trips, setTrips] = useState<TripRow[]>([]);
   const [offers, setOffers] = useState<OfferRow[]>([]);
   const [kb, setKb] = useState<KbRow[]>([]);
+  const [destinations, setDestinations] = useState<DestinationRow[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const onError = useCallback((e: unknown) => {
@@ -167,11 +260,19 @@ export default function TravelContentPage() {
     api<{ trips: TripRow[]; offers: OfferRow[]; kb: KbRow[] }>("/api/tp/admin/content")
       .then((d) => { setTrips(d.trips); setOffers(d.offers); setKb(d.kb); })
       .catch(onError);
+    api<{ destinations: DestinationRow[] }>("/api/tp/admin/destinations")
+      .then((d) => setDestinations(d.destinations))
+      .catch(onError);
   }, [onError]);
   useEffect(load, [load]);
 
   const mutate = async (body: unknown, method: "PATCH" | "DELETE") => {
     await jpost("/api/tp/admin/content", body, method);
+    load();
+  };
+
+  const mutateDestination = async (body: unknown, method: "PATCH" | "DELETE") => {
+    await jpost("/api/tp/admin/destinations", body, method);
     load();
   };
 
@@ -186,6 +287,7 @@ export default function TravelContentPage() {
             <h1 className="serif tpH1" style={{ marginBottom: "1rem" }}>Travel Content</h1>
             <div className="tpTabs" style={{ display: "flex", gap: "0.4rem", marginBottom: "1.2rem", flexWrap: "wrap" }}>
               <button className={`tpBtn ${tab === "trips" ? "tpBtnGold" : ""}`} onClick={() => setTab("trips")}>Featured Trips ({trips.length})</button>
+              <button className={`tpBtn ${tab === "destinations" ? "tpBtnGold" : ""}`} onClick={() => setTab("destinations")}>Destinations ({destinations.length})</button>
               <button className={`tpBtn ${tab === "offers" ? "tpBtnGold" : ""}`} onClick={() => setTab("offers")}>Offers ({offers.length})</button>
               <button className={`tpBtn ${tab === "kb" ? "tpBtnGold" : ""}`} onClick={() => setTab("kb")}>Knowledge Base ({kb.length})</button>
             </div>
@@ -206,6 +308,16 @@ export default function TravelContentPage() {
                       </div>
                     </div>
                   </div>
+                ))}
+              </>
+            )}
+
+            {tab === "destinations" && (
+              <>
+                <DestinationForm onSaved={load} />
+                {destinations.length === 0 && <div className="tpEmpty">No destinations yet. The gallery only appears on the homepage once one has a photo.</div>}
+                {destinations.map((d) => (
+                  <DestinationRowItem key={d.id} d={d} onChanged={mutateDestination} onImageReplaced={load} />
                 ))}
               </>
             )}

@@ -241,6 +241,15 @@ export const meetingPatchSchema = z.object({
   notes: z.string().max(1000).optional(),
 });
 
+/* ── Destination gallery cards (homepage — image + name, no price) ── */
+
+export const destinationCardSchema = z.object({
+  titleEn: z.string().trim().min(1).max(120),
+  titleAr: z.string().trim().min(1).max(120),
+  subtitleEn: z.string().max(200).optional(),
+  subtitleAr: z.string().max(200).optional(),
+});
+
 /* ── CRM (general homepage enquiries — the lead inbox) ── */
 
 export const generalEnquiryStatusEnum = z.enum(["new", "contacted", "qualified", "converted", "lost"]);

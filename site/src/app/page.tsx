@@ -2,6 +2,7 @@ import Preloader from "@/components/Preloader";
 import Navbar from "@/components/Navbar";
 import CustomCursor from "@/components/CustomCursor";
 import HeroJourney from "@/components/HeroJourney";
+import DestinationsGallery from "@/components/DestinationsGallery";
 import About from "@/components/About";
 import Services from "@/components/Services";
 import FeaturedTrips from "@/components/FeaturedTrips";
@@ -21,6 +22,7 @@ export default function Home() {
       <Navbar />
       <main id="main-content">
         <HeroJourney />
+        <DestinationsGallery />
         <About />
         <Services />
         <FeaturedTrips />
