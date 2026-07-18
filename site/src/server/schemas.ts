@@ -241,6 +241,42 @@ export const meetingPatchSchema = z.object({
   notes: z.string().max(1000).optional(),
 });
 
+/* ── Suppliers (internal — /admin/suppliers) ── */
+
+export const supplierCategoryEnum = z.enum(["hotel", "transport", "activity", "restaurant", "guide", "visa", "insurance", "other"]);
+export const supplierStatusEnum = z.enum(["active", "inactive", "blacklisted"]);
+export const rateUnitEnum = z.enum(["per_person", "per_room", "per_night", "per_vehicle", "per_day", "fixed"]);
+
+export const supplierSchema = z.object({
+  category: supplierCategoryEnum,
+  subtype: z.string().max(80).optional(),
+  name: z.string().trim().min(1).max(160),
+  city: z.string().max(120).optional(),
+  country: z.string().max(120).optional(),
+  contactName: z.string().max(120).optional(),
+  phone: z.string().max(40).optional(),
+  email: z.string().email().max(200).optional().or(z.literal("")),
+  whatsapp: z.string().max(40).optional(),
+  website: z.string().max(300).optional(),
+  paymentTerms: z.string().max(300).optional(),
+  cancellationPolicy: z.string().max(600).optional(),
+  notes: z.string().max(1000).optional(),
+  rating: z.number().int().min(1).max(5).optional(),
+  status: supplierStatusEnum.optional(),
+});
+
+export const supplierRateSchema = z.object({
+  supplierId: z.string().min(6),
+  serviceName: z.string().trim().min(1).max(160),
+  unit: rateUnitEnum,
+  currency: z.string().length(3).toUpperCase().default("SAR"),
+  adultCost: z.number().min(0).optional(),
+  childCost: z.number().min(0).optional(),
+  validFrom: z.string().max(20).optional(),
+  validTo: z.string().max(20).optional(),
+  notes: z.string().max(500).optional(),
+});
+
 /* ── Destination gallery cards (homepage — image + name, no price) ── */
 
 export const destinationCardSchema = z.object({

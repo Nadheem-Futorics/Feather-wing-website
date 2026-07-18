@@ -8,6 +8,7 @@ import { api, jpost } from "@/lib/tp-client";
 const LINKS = [
   { href: "/admin/crm", label: "CRM" },
   { href: "/admin/trip-enquiries", label: "Enquiries" },
+  { href: "/admin/suppliers", label: "Suppliers" },
   { href: "/admin/travel-content", label: "Travel Content" },
   { href: "/admin/meetings", label: "Meetings" },
 ];

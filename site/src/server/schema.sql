@@ -340,6 +340,50 @@ CREATE TABLE IF NOT EXISTS quote_enquiries (
   updated_at TEXT NOT NULL
 );
 
+-- Suppliers (hotels, transport, activities, etc.) admin-managed at
+-- /admin/suppliers — internal employee tool, no public API. Scoped-down
+-- Phase 1 of the "Tour Company CRM" spec: manual 1-5 rating instead of an
+-- automated weighted-scoring algorithm, per-rate currency string instead of
+-- a conversion engine, no persisted quotations yet.
+CREATE TABLE IF NOT EXISTS suppliers (
+  id TEXT PRIMARY KEY,
+  category TEXT NOT NULL,              -- hotel | transport | activity | restaurant | guide | visa | insurance | other
+  subtype TEXT,
+  name TEXT NOT NULL,
+  city TEXT,
+  country TEXT,
+  contact_name TEXT,
+  phone TEXT,
+  email TEXT,
+  whatsapp TEXT,
+  website TEXT,
+  payment_terms TEXT,
+  cancellation_policy TEXT,
+  notes TEXT,
+  rating INTEGER,                      -- 1-5, manually set, nullable
+  status TEXT NOT NULL DEFAULT 'active', -- active | inactive | blacklisted
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_suppliers_category ON suppliers(category);
+
+CREATE TABLE IF NOT EXISTS supplier_rates (
+  id TEXT PRIMARY KEY,
+  supplier_id TEXT NOT NULL REFERENCES suppliers(id),
+  service_name TEXT NOT NULL,
+  unit TEXT NOT NULL DEFAULT 'fixed',  -- per_person | per_room | per_night | per_vehicle | per_day | fixed
+  currency TEXT NOT NULL DEFAULT 'SAR',
+  adult_cost REAL,
+  child_cost REAL,
+  valid_from TEXT,
+  valid_to TEXT,
+  notes TEXT,
+  active INTEGER NOT NULL DEFAULT 1,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_supplier_rates_supplier ON supplier_rates(supplier_id);
+
 -- Homepage contact-form submissions (public /api/enquiry) — the CRM's lead
 -- inbox. Distinct from quote_enquiries (structured trip-planner quote
 -- requests, which already have their own admin pipeline).
