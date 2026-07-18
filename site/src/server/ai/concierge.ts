@@ -95,7 +95,9 @@ class GeminiConcierge implements ConciergeProvider {
   private model: string;
   constructor(apiKey: string) {
     this.apiKey = apiKey;
-    this.model = process.env.GEMINI_MODEL ?? "gemini-2.5-flash";
+    // See the matching comment in assistant.ts — "-latest" avoids fresh keys
+    // 404ing on pinned model names their account tier can't access yet.
+    this.model = process.env.GEMINI_MODEL ?? "gemini-flash-latest";
   }
 
   async *run(input: ConciergeRun): AsyncGenerator<AiEvent> {

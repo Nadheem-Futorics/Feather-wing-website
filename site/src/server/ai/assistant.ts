@@ -369,13 +369,21 @@ interface GeminiPart {
   text?: string;
   functionCall?: { name: string; args: Record<string, unknown> };
   functionResponse?: { name: string; response: unknown };
+  // Opaque blob Gemini's "thinking" models (e.g. gemini-3.5-flash, aliased
+  // as gemini-flash-latest) attach to functionCall parts. It MUST be echoed
+  // back verbatim on that same part in the next turn's request, or the API
+  // rejects the call with a 400 "missing thought_signature" error — see
+  // https://ai.google.dev/gemini-api/docs/thought-signatures
+  thoughtSignature?: string;
 }
 interface GeminiContent {
   role: "user" | "model" | "function";
   parts: GeminiPart[];
 }
 
-type GeminiStreamEvent = { type: "text"; text: string } | { type: "functionCall"; name: string; args: Record<string, unknown> };
+type GeminiStreamEvent =
+  | { type: "text"; text: string }
+  | { type: "functionCall"; name: string; args: Record<string, unknown>; thoughtSignature?: string };
 
 /** Parses a Gemini streamGenerateContent SSE body, yielding text and functionCall parts as they arrive. */
 async function* parseGeminiStream(body: ReadableStream<Uint8Array>): AsyncGenerator<GeminiStreamEvent> {
@@ -398,7 +406,8 @@ async function* parseGeminiStream(body: ReadableStream<Uint8Array>): AsyncGenera
         const parts: GeminiPart[] = json?.candidates?.[0]?.content?.parts ?? [];
         for (const p of parts) {
           if (typeof p.text === "string" && p.text) yield { type: "text", text: p.text };
-          if (p.functionCall) yield { type: "functionCall", name: p.functionCall.name, args: p.functionCall.args ?? {} };
+          if (p.functionCall)
+            yield { type: "functionCall", name: p.functionCall.name, args: p.functionCall.args ?? {}, thoughtSignature: p.thoughtSignature };
         }
       } catch {
         // partial/non-JSON keepalive line — ignore
@@ -423,7 +432,11 @@ class GeminiAssistant implements AssistantProvider {
   private model: string;
   constructor(apiKey: string) {
     this.apiKey = apiKey;
-    this.model = process.env.GEMINI_MODEL ?? "gemini-2.5-flash";
+    // "-latest" alias so newly-created (lower-tier) API keys keep working as
+    // Google rotates model availability — a pinned dated model (e.g.
+    // gemini-2.5-flash) can 404 with "no longer available to new users"
+    // on fresh keys even though it's still listed in models.list.
+    this.model = process.env.GEMINI_MODEL ?? "gemini-flash-latest";
   }
 
   async *run(input: AssistantRun): AsyncGenerator<AiEvent> {
@@ -460,20 +473,20 @@ class GeminiAssistant implements AssistantProvider {
         }
 
         let assistantText = "";
-        const calls: { name: string; args: Record<string, unknown> }[] = [];
+        const calls: { name: string; args: Record<string, unknown>; thoughtSignature?: string }[] = [];
         for await (const ev of parseGeminiStream(res.body)) {
           if (ev.type === "text") {
             assistantText += ev.text;
             yield { type: "text", delta: ev.text };
           } else {
-            calls.push({ name: ev.name, args: ev.args });
+            calls.push({ name: ev.name, args: ev.args, thoughtSignature: ev.thoughtSignature });
             yield { type: "tool", name: ev.name };
           }
         }
 
         const modelParts: GeminiPart[] = [];
         if (assistantText) modelParts.push({ text: assistantText });
-        for (const c of calls) modelParts.push({ functionCall: { name: c.name, args: c.args } });
+        for (const c of calls) modelParts.push({ functionCall: { name: c.name, args: c.args }, thoughtSignature: c.thoughtSignature });
         contents.push({ role: "model", parts: modelParts });
 
         if (!calls.length) {
