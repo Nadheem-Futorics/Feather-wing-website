@@ -340,6 +340,29 @@ CREATE TABLE IF NOT EXISTS quote_enquiries (
   updated_at TEXT NOT NULL
 );
 
+-- Homepage contact-form submissions (public /api/enquiry) — the CRM's lead
+-- inbox. Distinct from quote_enquiries (structured trip-planner quote
+-- requests, which already have their own admin pipeline).
+CREATE TABLE IF NOT EXISTS general_enquiries (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  mobile TEXT NOT NULL,
+  service TEXT NOT NULL,
+  destination TEXT,
+  departure TEXT,
+  travel_date TEXT,
+  travellers TEXT,
+  contact_method TEXT,
+  notes TEXT,
+  status TEXT NOT NULL DEFAULT 'new',   -- new | contacted | qualified | converted | lost
+  admin_notes TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_general_enq_status ON general_enquiries(status);
+CREATE INDEX IF NOT EXISTS idx_general_enq_created ON general_enquiries(created_at);
+
 CREATE TABLE IF NOT EXISTS company_packages (
   id TEXT PRIMARY KEY,
   title_en TEXT NOT NULL,

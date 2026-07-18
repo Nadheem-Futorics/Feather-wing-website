@@ -1,15 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createGeneralEnquiry } from "@/server/repo/crm";
 
 /**
- * Enquiry endpoint.
- * Currently logs server-side and returns success — wire it to
- * email/CRM (e.g. Resend, SMTP, HubSpot) before production.
+ * Enquiry endpoint — persists homepage contact-form submissions into the
+ * CRM's lead inbox (general_enquiries table, visible at /admin/crm).
  *
  * Spam prevention:
  *  • honeypot field ("website") must be empty
  *  • sub-3s submissions are rejected (bots fill instantly)
  *  • basic field validation mirrors the client
  */
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 const seen = new Map<string, number[]>(); // naive in-memory rate limit
 const MAX_BODY_BYTES = 20_000; // this form has no file fields — a few KB of text is the realistic ceiling
@@ -74,23 +77,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "validation" }, { status: 422 });
   }
 
-  // TODO: deliver to email/CRM here. Until a real provider is configured
-  // (see README — REQUIRED HUMAN ACTION), this log is the *only* record of
-  // the enquiry, so it intentionally keeps the full submission rather than
-  // silently dropping leads. Once real email/CRM delivery exists, trim this
-  // to a non-PII correlation id, same as src/app/api/tp/trips/[tripId]/quote/route.ts.
-  console.log("[enquiry]", {
-    name,
-    mobile,
-    email,
-    service,
-    destination: typeof body.destination === "string" ? body.destination.slice(0, 200) : undefined,
-    departure: typeof body.departure === "string" ? body.departure.slice(0, 200) : undefined,
-    date: typeof body.date === "string" ? body.date.slice(0, 40) : undefined,
-    travellers: typeof body.travellers === "string" || typeof body.travellers === "number" ? body.travellers : undefined,
-    contactMethod: typeof body.contactMethod === "string" ? body.contactMethod.slice(0, 40) : undefined,
-    notes,
-  });
+  const destination = typeof body.destination === "string" ? body.destination.slice(0, 200) : undefined;
+  const departure = typeof body.departure === "string" ? body.departure.slice(0, 200) : undefined;
+  const travelDate = typeof body.date === "string" ? body.date.slice(0, 40) : undefined;
+  const travellers =
+    typeof body.travellers === "string" ? body.travellers.slice(0, 40)
+    : typeof body.travellers === "number" ? String(body.travellers)
+    : undefined;
+  const contactMethod = typeof body.contactMethod === "string" ? body.contactMethod.slice(0, 40) : undefined;
+
+  const { id } = createGeneralEnquiry({ name, email, mobile, service, destination, departure, travelDate, travellers, contactMethod, notes });
+  console.log("[enquiry] saved", id);
 
   return NextResponse.json({ ok: true });
 }

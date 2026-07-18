@@ -241,6 +241,29 @@ export const meetingPatchSchema = z.object({
   notes: z.string().max(1000).optional(),
 });
 
+/* ── CRM (general homepage enquiries — the lead inbox) ── */
+
+export const generalEnquiryStatusEnum = z.enum(["new", "contacted", "qualified", "converted", "lost"]);
+
+export const generalEnquiryCreateSchema = z.object({
+  name: z.string().trim().min(1).max(120),
+  email: z.string().email().max(200),
+  mobile: z.string().trim().min(6).max(20),
+  service: z.string().trim().min(1).max(120),
+  destination: z.string().max(200).optional(),
+  departure: z.string().max(200).optional(),
+  travelDate: z.string().max(40).optional(),
+  travellers: z.string().max(40).optional(),
+  contactMethod: z.string().max(40).optional(),
+  notes: z.string().max(2000).optional(),
+});
+
+export const crmPatchSchema = z.object({
+  id: z.string().min(6),
+  status: generalEnquiryStatusEnum,
+  adminNotes: z.string().max(2000).optional(),
+});
+
 export const offerSchema = z.object({
   scene: sceneEnum.default("dunes"),
   titleEn: z.string().trim().min(2).max(120),
