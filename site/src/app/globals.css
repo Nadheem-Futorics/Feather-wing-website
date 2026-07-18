@@ -14,7 +14,8 @@
 
   --font-serif: var(--font-playfair), "Playfair Display", Georgia, serif;
   --font-sans: var(--font-inter), Inter, system-ui, sans-serif;
-  --font-ar: var(--font-amiri), "Amiri", serif;
+  --font-ar: var(--font-reem-kufi), "Reem Kufi", sans-serif;
+  --font-ar-body: var(--font-tajawal), "Tajawal", sans-serif;
 
   --nav-h: 76px;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -35,6 +36,10 @@ body {
   overflow-x: clip;
 }
 
+/* Arabic typography: Tajawal for body text, Reem Kufi for headings/display.
+   Re-pointing --font-sans under RTL cascades Tajawal into every element that
+   uses it (body, kicker, navbar, chat widget, …) without per-component rules. */
+[dir="rtl"] { --font-sans: var(--font-ar-body); }
 [dir="rtl"] .serif, [dir="rtl"] h1, [dir="rtl"] h2, [dir="rtl"] h3 { font-family: var(--font-ar); }
 
 img, video, canvas, svg { max-width: 100%; display: block; }

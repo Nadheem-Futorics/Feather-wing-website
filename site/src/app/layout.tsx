@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Playfair_Display, Inter, Amiri } from "next/font/google";
+import { Playfair_Display, Inter, Reem_Kufi, Tajawal } from "next/font/google";
 import "./globals.css";
 import { LanguageProvider } from "@/lib/i18n";
 import { SmoothScrollProvider } from "@/lib/motion";
@@ -18,10 +18,17 @@ const inter = Inter({
   display: "swap",
 });
 
-const amiri = Amiri({
-  variable: "--font-amiri",
+// Arabic pairing: Reem Kufi for headings/display, Tajawal for body text.
+const reemKufi = Reem_Kufi({
+  variable: "--font-reem-kufi",
   subsets: ["arabic"],
-  weight: ["400", "700"],
+  display: "swap",
+});
+
+const tajawal = Tajawal({
+  variable: "--font-tajawal",
+  subsets: ["arabic"],
+  weight: ["300", "400", "500", "700"],
   display: "swap",
 });
 
@@ -80,7 +87,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" dir="ltr" className={`${playfair.variable} ${inter.variable} ${amiri.variable}`}>
+    <html lang="en" dir="ltr" className={`${playfair.variable} ${inter.variable} ${reemKufi.variable} ${tajawal.variable}`}>
       <body>
         <a href="#main-content" className="skip-link">
           Skip to main content
