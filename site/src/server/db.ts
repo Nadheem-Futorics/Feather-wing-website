@@ -14,7 +14,7 @@ let _db: DatabaseSync | null = null;
 
 export function db(): DatabaseSync {
   if (_db) return _db;
-  const dir = process.env.TP_DATA_DIR ?? join(process.cwd(), "data");
+  const dir = process.env.TP_DATA_DIR ?? join(/* turbopackIgnore: true */ process.cwd(), "data");
   mkdirSync(dir, { recursive: true });
   _db = new DatabaseSync(join(dir, "trip-planner.db"));
   _db.exec("PRAGMA journal_mode = WAL;");
@@ -24,7 +24,7 @@ export function db(): DatabaseSync {
 }
 
 function migrate(d: DatabaseSync) {
-  const schema = readFileSync(join(process.cwd(), "src", "server", "schema.sql"), "utf8");
+  const schema = readFileSync(join(/* turbopackIgnore: true */ process.cwd(), "src", "server", "schema.sql"), "utf8");
   d.exec(schema);
   seedPackages(d);
   seedAdminUser(d);
