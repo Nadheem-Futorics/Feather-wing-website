@@ -32,6 +32,9 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# ...except the template DEPLOYMENT.md tells deployers to copy. It holds
+# only empty placeholders and non-secret defaults, never real credentials.
+!.env.example
 
 # vercel
 .vercel
