@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { db, nowIso, uid } from "./db";
 import { HttpError } from "./authz";
+import { sessionSecret } from "./secret";
 
 /**
  * Guest-session authentication.
@@ -13,13 +14,8 @@ import { HttpError } from "./authz";
 
 const COOKIE = "fwt_session";
 
-function secret(): string {
-  // Dev fallback keeps the app runnable; set SESSION_SECRET in production.
-  return process.env.SESSION_SECRET ?? "fwt-dev-session-secret-change-me";
-}
-
 function sign(value: string): string {
-  return createHmac("sha256", secret()).update(value).digest("base64url");
+  return createHmac("sha256", sessionSecret()).update(value).digest("base64url");
 }
 
 function verify(value: string, sig: string): boolean {
