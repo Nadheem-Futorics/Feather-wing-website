@@ -78,7 +78,6 @@ export default function Footer() {
 
         <div className={styles.col}>
           <h3>{t(dict.footer.contact)}</h3>
-          <p className={styles.editNote}>{t(dict.footer.editable)}</p>
           <p>
             <strong>{t(dict.footer.phone)}:</strong> <span dir="ltr">{contact.phone}</span>
           </p>

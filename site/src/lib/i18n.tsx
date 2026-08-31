@@ -180,7 +180,6 @@ export const dict = {
     email: { en: "Email", ar: "البريد" },
     address: { en: "Address", ar: "العنوان" },
     rights: { en: "All rights reserved.", ar: "جميع الحقوق محفوظة." },
-    editable: { en: "Contact details are editable placeholders.", ar: "بيانات التواصل نماذج قابلة للتعديل." },
   },
   cursor: {
     explore: { en: "Explore", ar: "استكشف" },

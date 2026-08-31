@@ -27,7 +27,7 @@ export type DestinationCardDto = ReturnType<typeof destinationCardDto>;
 
 /** Same persistent-volume convention as db.ts (TP_DATA_DIR on Railway) so uploads survive redeploys. */
 export function destinationUploadsDir(): string {
-  const dir = process.env.TP_DATA_DIR ?? join(process.cwd(), "data");
+  const dir = process.env.TP_DATA_DIR ?? join(/* turbopackIgnore: true */ process.cwd(), "data");
   const uploads = join(dir, "uploads", "destinations");
   mkdirSync(uploads, { recursive: true });
   return uploads;
