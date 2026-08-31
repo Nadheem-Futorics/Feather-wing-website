@@ -4,6 +4,7 @@ import { listKbArticles } from "../repo/content";
 import { services } from "@/data/services";
 import { saudiDestinations, internationalDestinations } from "@/data/destinations";
 import { contact, brand } from "@/data/site";
+import { geminiFetch } from "./gemini";
 
 /**
  * Customer-facing concierge — a public-website chat widget distinct from
@@ -95,9 +96,9 @@ class GeminiConcierge implements ConciergeProvider {
   private model: string;
   constructor(apiKey: string) {
     this.apiKey = apiKey;
-    // See the matching comment in assistant.ts — "-latest" avoids fresh keys
-    // 404ing on pinned model names their account tier can't access yet.
-    this.model = process.env.GEMINI_MODEL ?? "gemini-flash-latest";
+    // See the matching comment in assistant.ts for why this is a pinned
+    // model rather than a "-latest" alias.
+    this.model = process.env.GEMINI_MODEL ?? "gemini-3.5-flash";
   }
 
   async *run(input: ConciergeRun): AsyncGenerator<AiEvent> {
@@ -108,14 +109,10 @@ class GeminiConcierge implements ConciergeProvider {
     }));
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:streamGenerateContent?alt=sse&key=${encodeURIComponent(this.apiKey)}`;
     try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents,
-          systemInstruction: { parts: [{ text: system }] },
-          generationConfig: { maxOutputTokens: 700 },
-        }),
+      const res = await geminiFetch(url, {
+        contents,
+        systemInstruction: { parts: [{ text: system }] },
+        generationConfig: { maxOutputTokens: 700 },
       });
       if (!res.ok || !res.body) {
         throw new Error(`Gemini request failed: ${res.status} ${await res.text().catch(() => "")}`);

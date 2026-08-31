@@ -10,6 +10,7 @@ import { convertToBase, fxSource } from "../providers/fx";
 import { optimizeDay, type OptItem } from "../optimizer";
 import { changeSetSchema, type ChangeSet } from "../schemas";
 import { createProposal, logToolCall, saveMessage, listMessages } from "../repo/ai";
+import { geminiFetch } from "./gemini";
 
 /**
  * AI travel assistant.
@@ -433,10 +434,13 @@ class GeminiAssistant implements AssistantProvider {
   constructor(apiKey: string) {
     this.apiKey = apiKey;
     // "-latest" alias so newly-created (lower-tier) API keys keep working as
-    // Google rotates model availability — a pinned dated model (e.g.
-    // gemini-2.5-flash) can 404 with "no longer available to new users"
-    // on fresh keys even though it's still listed in models.list.
-    this.model = process.env.GEMINI_MODEL ?? "gemini-flash-latest";
+    // Google rotates model availability, and models.list is not a reliable
+    // guide: gemini-2.5-flash is listed but 404s "no longer available to new
+    // users" on fresh keys. The "-latest" aliases dodge that but have been
+    // seen hanging indefinitely under load instead (see ./gemini.ts), which
+    // is the worse failure. So pin a model verified against this key tier,
+    // and override with GEMINI_MODEL when Google's lineup moves on.
+    this.model = process.env.GEMINI_MODEL ?? "gemini-3.5-flash";
   }
 
   async *run(input: AssistantRun): AsyncGenerator<AiEvent> {
@@ -458,15 +462,12 @@ class GeminiAssistant implements AssistantProvider {
 
     try {
       for (let round = 0; round < MAX_ROUNDS; round++) {
-        const res = await fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents,
-            systemInstruction: { parts: [{ text: system }] },
-            tools: [{ functionDeclarations }],
-            generationConfig: { maxOutputTokens: 2000 },
-          }),
+        // Each tool-calling round gets its own header-timeout guard.
+        const res = await geminiFetch(url, {
+          contents,
+          systemInstruction: { parts: [{ text: system }] },
+          tools: [{ functionDeclarations }],
+          generationConfig: { maxOutputTokens: 2000 },
         });
         if (!res.ok || !res.body) {
           throw new Error(`Gemini request failed: ${res.status} ${await res.text().catch(() => "")}`);
