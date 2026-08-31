@@ -17,8 +17,9 @@ export default function JsonLd() {
     email: contact.email,
     address: {
       "@type": "PostalAddress",
-      streetAddress: "Rakha",
+      streetAddress: "Khalid Bin Al-Waleed St., Al-Rakah Al-Shamaliyah",
       addressLocality: "Dammam",
+      addressRegion: "Eastern Province",
       addressCountry: "SA",
     },
     sameAs: Object.values(socials).filter((s) => s.startsWith("http")),

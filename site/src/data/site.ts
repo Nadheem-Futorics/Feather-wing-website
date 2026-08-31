@@ -15,7 +15,7 @@ export const contact = {
   /** Public enquiries email address */
   email: "info@feather-wing.com",
   /** Office address */
-  address: "Rakha, Dammam, Saudi Arabia",
+  address: "Khalid Bin Al-Waleed St., Al-Rakah Al-Shamaliyah, Dammam, Eastern Province, Saudi Arabia",
   city: "Dammam, Saudi Arabia",
 };
 
