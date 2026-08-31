@@ -1,22 +1,22 @@
 /**
  * ─────────────────────────────────────────────────────────────
  *  SITE CONFIGURATION — EDITABLE CONTENT
- *  Everything in this file is a placeholder meant to be replaced
- *  by the Feather Wing Tours team. No real contact information
- *  has been invented; update before going live.
+ *  The contact block below holds the real Feather Wing Tours details.
+ *  Socials and stats are still placeholders meant to be replaced
+ *  by the Feather Wing Tours team before going live.
  * ─────────────────────────────────────────────────────────────
  */
 
 export const contact = {
-  /** EDITABLE — replace with the real phone number (E.164 format) */
-  phone: "+966XXXXXXXXX",
-  /** EDITABLE — replace with the real WhatsApp number (digits only) */
-  whatsapp: "966XXXXXXXXX",
-  /** EDITABLE — replace with the real email address */
-  email: "hello@featherwingtours.example",
-  /** EDITABLE — replace with the real office address */
-  address: "Office address — to be provided",
-  city: "Saudi Arabia",
+  /** Phone number in E.164 format */
+  phone: "+966576410038",
+  /** WhatsApp number, digits only — used to build wa.me links */
+  whatsapp: "966576410038",
+  /** Public enquiries email address */
+  email: "info@feather-wing.com",
+  /** Office address */
+  address: "Rakha, Dammam, Saudi Arabia",
+  city: "Dammam, Saudi Arabia",
 };
 
 export const socials = {

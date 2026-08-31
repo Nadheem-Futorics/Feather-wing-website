@@ -159,7 +159,6 @@ export default function Enquiry() {
           <aside className={styles.aside}>
             <div className={styles.asideCard}>
               <h3 className="serif">{t({ en: "Direct contact", ar: "تواصل مباشر" })}</h3>
-              <p className={styles.placeholderNote}>{t(dict.footer.editable)}</p>
               <ul>
                 <li>
                   <strong>{t(dict.footer.phone)}</strong> <span dir="ltr">{contact.phone}</span>

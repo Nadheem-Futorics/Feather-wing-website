@@ -15,7 +15,12 @@ export default function JsonLd() {
     image: `${siteUrl}/media/finale.png`,
     telephone: contact.phone,
     email: contact.email,
-    address: { "@type": "PostalAddress", addressCountry: "SA" },
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "Rakha",
+      addressLocality: "Dammam",
+      addressCountry: "SA",
+    },
     sameAs: Object.values(socials).filter((s) => s.startsWith("http")),
     makesOffer: services.map((s) => ({
       "@type": "Offer",
